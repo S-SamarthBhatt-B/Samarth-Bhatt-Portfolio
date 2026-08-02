@@ -18,4 +18,7 @@ export const asciiLogo = [
   '  ██████  ██   ██ ██      ██ ██   ██ ██   ██    ██    ██   ██  ██████  ███████',
 ].join('\n');
 
-export const welcomeMessage = ['Welcome.', "Type 'help' to begin."];
+export const welcomeMessage = {
+  greeting: 'Welcome.',
+  promptCommand: 'help',
+};
