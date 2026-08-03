@@ -3,6 +3,7 @@ import { profile } from '@/constants/profile';
 
 registerCommand({
   name: 'github',
+  aliases: ['gh'],
   description: 'Open my GitHub profile',
   execute: () => {
     const url = profile.socials.find((s) => s.label === 'GitHub')?.url ?? '';

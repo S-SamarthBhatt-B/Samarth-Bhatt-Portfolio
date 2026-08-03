@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import type { KeyboardEvent } from 'react';
 import { useCommandHistory } from '@/hooks/useCommandHistory';
 import { getVisibleCommands } from '@/commands/registry';
-import { getAutocompleteMatches, longestCommonPrefix } from '@/utils/autocomplete';
+import { getAutocompleteMatches, getClosestCommand, longestCommonPrefix } from '@/utils/autocomplete';
 import { promptLabel } from '@/constants/prompt';
 
 interface TerminalInputProps {
@@ -16,6 +16,7 @@ const TerminalInput = forwardRef<HTMLInputElement, TerminalInputProps>(function 
   forwardedRef,
 ) {
   const [value, setValue] = useState('');
+  const [suggestion, setSuggestion] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { push, navigate, resetPointer } = useCommandHistory();
 
@@ -26,6 +27,11 @@ const TerminalInput = forwardRef<HTMLInputElement, TerminalInputProps>(function 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    const names = getVisibleCommands().flatMap((c) => [c.name, ...(c.aliases ?? [])]);
+    setSuggestion(getClosestCommand(value, names));
+  }, [value]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     switch (true) {
@@ -55,7 +61,7 @@ const TerminalInput = forwardRef<HTMLInputElement, TerminalInputProps>(function 
 
       case e.key === 'Tab': {
         e.preventDefault();
-        const names = getVisibleCommands().map((c) => c.name);
+        const names = getVisibleCommands().flatMap((c) => [c.name, ...(c.aliases ?? [])]);
         const matches = getAutocompleteMatches(value, names);
         if (matches.length === 1) {
           setValue(matches[0]);
@@ -85,23 +91,26 @@ const TerminalInput = forwardRef<HTMLInputElement, TerminalInputProps>(function 
   };
 
   return (
-    <div
-      className="flex items-center gap-2 border-t border-os-border pt-2 font-mono text-sm sm:text-base"
-      onClick={() => inputRef.current?.focus()}
-    >
-      <span className="whitespace-nowrap text-os-muted">{promptLabel}</span>
-      <input
-        ref={inputRef}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="off"
-        spellCheck={false}
-        className="[caret-color:#00FF88] flex-1 bg-transparent text-os-text outline-none"
-        aria-label="Terminal command input"
-      />
+    <div className="border-t border-os-border pt-2 font-mono text-sm sm:text-base" onClick={() => inputRef.current?.focus()}>
+      <div className="flex items-center gap-2">
+        <span className="whitespace-nowrap text-os-muted">{promptLabel}</span>
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          className="[caret-color:#00FF88] flex-1 bg-transparent text-os-text outline-none"
+          aria-label="Terminal command input"
+        />
+        <span className="animate-blink text-os-accent">▍</span>
+      </div>
+      {suggestion && value.trim() && (
+        <p className="mt-1 text-xs text-os-muted/80">Did you mean: {suggestion}</p>
+      )}
     </div>
   );
 });

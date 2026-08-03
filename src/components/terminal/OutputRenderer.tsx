@@ -28,6 +28,25 @@ export default function OutputRenderer({ node }: OutputRendererProps) {
         </div>
       );
 
+    case 'help-groups':
+      return (
+        <div className="my-2 space-y-3 font-mono text-sm">
+          {node.groups.map((group) => (
+            <div key={group.title} className="rounded-lg border border-os-border/50 bg-black/20 p-3">
+              <p className="mb-2 text-xs uppercase tracking-[0.3em] text-os-accent">{group.title}</p>
+              <div className="grid grid-cols-[minmax(84px,auto)_1fr] gap-x-4 gap-y-1">
+                {group.rows.map((row) => (
+                  <div key={row.command} className="contents">
+                    <span className="text-os-accent">{row.command}</span>
+                    <span className="text-os-muted">{row.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
     case 'skills-table':
       return (
         <div className="my-1 space-y-2 font-mono text-sm">

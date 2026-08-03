@@ -2,10 +2,11 @@ import { registerCommand } from '@/commands/registry';
 
 registerCommand({
   name: 'hello',
+  aliases: ['whoareyou'],
   description: 'Say hello',
   hidden: true,
   execute: () => [
-    { variant: 'text', content: 'Hey there! Thanks for exploring SamarthOS.' },
+    { variant: 'success', content: 'Hello, visitor. SamarthOS is online.' },
     { variant: 'muted', content: 'Type "help" if you get lost.' },
   ],
 });

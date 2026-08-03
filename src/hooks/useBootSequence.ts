@@ -18,13 +18,9 @@ interface BootSequenceState {
 }
 
 /**
- * Drives the full startup flow described in the SamarthOS spec:
- * black screen -> "Powering On..." -> boot lines -> progress bar ->
- * "Opening Terminal..." -> ASCII logo -> welcome message -> onComplete.
- *
- * Each stage's timing lives here so BootScreen stays a pure render layer.
+ * Drives the startup flow with a cinematic sequence and a skip path.
  */
-export function useBootSequence(onComplete: () => void) {
+export function useBootSequence(onComplete: () => void, skip = false) {
   const [state, setState] = useState<BootSequenceState>({
     stage: 'black',
     visibleLines: [],
@@ -33,65 +29,67 @@ export function useBootSequence(onComplete: () => void) {
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // Reduced-motion users still get the full sequence, just compressed.
-    const speed = prefersReducedMotion ? 0.15 : 1;
+    const speed = prefersReducedMotion ? 0.16 : 1;
     let cancelled = false;
 
+    const finish = () => {
+      if (cancelled) return;
+      setState({ stage: 'welcome', visibleLines: bootLines, progress: 100 });
+      onComplete();
+    };
+
     async function run() {
-      // Stage 1: black screen, no UI
-      await sleep(900 * speed);
-      if (cancelled) return;
+      if (skip) {
+        finish();
+        return;
+      }
 
-      // Stage 2: Powering On...
+      await sleep(700 * speed);
+      if (cancelled || skip) return finish();
+
       setState((s) => ({ ...s, stage: 'powering-on' }));
-      await sleep(1000 * speed);
-      if (cancelled) return;
+      await sleep(900 * speed);
+      if (cancelled || skip) return finish();
 
-      // Stage 3: boot lines, one by one
       setState((s) => ({ ...s, stage: 'boot-lines' }));
       for (let i = 0; i < bootLines.length; i += 1) {
-        if (cancelled) return;
-        await sleep(220 * speed);
+        if (cancelled || skip) return finish();
+        await sleep(170 * speed);
         setState((s) => ({ ...s, visibleLines: bootLines.slice(0, i + 1) }));
       }
-      await sleep(300 * speed);
-      if (cancelled) return;
+      await sleep(250 * speed);
+      if (cancelled || skip) return finish();
 
-      // Stage 4: progress bar 0 -> 100
       setState((s) => ({ ...s, stage: 'progress-bar' }));
-      const steps = 40;
+      const steps = 42;
       for (let i = 1; i <= steps; i += 1) {
-        if (cancelled) return;
-        await sleep(25 * speed);
+        if (cancelled || skip) return finish();
+        await sleep(22 * speed);
         setState((s) => ({ ...s, progress: Math.round((i / steps) * 100) }));
       }
-      await sleep(250 * speed);
-      if (cancelled) return;
+      await sleep(220 * speed);
+      if (cancelled || skip) return finish();
 
-      // Stage 5: Opening Terminal...
       setState((s) => ({ ...s, stage: 'opening-terminal' }));
-      await sleep(800 * speed);
-      if (cancelled) return;
+      await sleep(700 * speed);
+      if (cancelled || skip) return finish();
 
-      // Stage 6: ASCII logo
       setState((s) => ({ ...s, stage: 'logo' }));
-      await sleep(1400 * speed);
-      if (cancelled) return;
+      await sleep(900 * speed);
+      if (cancelled || skip) return finish();
 
-      // Stage 7: welcome message, then launch terminal
       setState((s) => ({ ...s, stage: 'welcome' }));
-      await sleep(1300 * speed);
-      if (cancelled) return;
+      await sleep(900 * speed);
+      if (cancelled || skip) return finish();
 
-      onComplete();
+      finish();
     }
 
-    run();
+    void run();
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onComplete, skip]);
 
   return state;
 }

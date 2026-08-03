@@ -12,7 +12,8 @@ export default function BootLine({ text }: BootLineProps) {
       transition={{ duration: 0.25 }}
       className="font-mono text-sm text-os-accent/90 sm:text-base"
     >
-      <span className="text-os-muted">$</span> {text}
+      <span className="mr-2 text-os-muted">$</span>
+      {text}
     </motion.p>
   );
 }

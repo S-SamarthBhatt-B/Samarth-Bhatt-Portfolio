@@ -3,9 +3,9 @@ import { registerCommand } from '@/commands/registry';
 registerCommand({
   name: 'ui',
   aliases: ['web'],
-  description: 'Launch the graphical portfolio',
+  description: 'Launch the desktop portfolio',
   execute: (ctx) => {
-    ctx.pushOutput([{ variant: 'success', content: 'Launching graphical interface...' }]);
+    ctx.pushOutput([{ variant: 'success', content: 'Booting the SamarthOS desktop...' }]);
     ctx.enterGuiMode();
   },
 });

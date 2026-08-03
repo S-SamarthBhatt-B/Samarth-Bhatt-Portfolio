@@ -3,6 +3,7 @@ import { profile } from '@/constants/profile';
 
 registerCommand({
   name: 'resume',
+  aliases: ['cv'],
   description: 'Download my resume (PDF)',
   execute: () => {
     const url = `${import.meta.env.BASE_URL}${profile.resumePath}`;

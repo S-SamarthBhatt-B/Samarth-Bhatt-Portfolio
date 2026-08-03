@@ -1,7 +1,10 @@
 import { useCallback, useState } from 'react';
 import type { CommandContext, TerminalOutputLine } from '@/types/terminal.types';
 import { parseCommand } from '@/utils/commandParser';
-import { getCommand } from '@/commands/registry';
+import { getCommand, getVisibleCommands } from '@/commands/registry';
+import { getClosestCommand } from '@/utils/autocomplete';
+import { getLoaderConfig } from '@/utils/terminalLoaders';
+import { getTypingSpeed, shouldUseTypewriter } from '@/utils/typing';
 import { useOSState } from './useOSState';
 
 let idCounter = 0;
@@ -12,11 +15,25 @@ export function useTerminal() {
   const enterGui = useOSState((s) => s.beginGuiTransition);
   const beginShutdown = useOSState((s) => s.beginShutdown);
 
-  const pushOutput = useCallback((newLines: Omit<TerminalOutputLine, 'id'>[]) => {
-    setLines((prev) => [...prev, ...newLines.map((l) => ({ ...l, id: nextId() }))]);
+  const pushOutput = useCallback((newLines: Omit<TerminalOutputLine, 'id'>[], commandName?: string) => {
+    setLines((prev) => [...prev, ...newLines.map((line) => ({
+      ...line,
+      id: nextId(),
+      commandName: line.commandName ?? commandName,
+      typing: line.typing ?? {
+        enabled: shouldUseTypewriter(commandName, line.variant),
+        speed: getTypingSpeed(commandName, line.variant),
+      },
+    }))]);
   }, []);
 
-  const clearScreen = useCallback(() => setLines([]), []);
+  const clearScreen = useCallback(() => {
+    setLines([]);
+  }, []);
+
+  const appendLine = useCallback((line: Omit<TerminalOutputLine, 'id'>) => {
+    setLines((prev) => [...prev, { ...line, id: nextId() }]);
+  }, []);
 
   const runCommand = useCallback(
     async (raw: string) => {
@@ -29,10 +46,14 @@ export function useTerminal() {
       const command = getCommand(name);
 
       if (!command) {
-        pushOutput([
+        const suggestion = getClosestCommand(name, getVisibleCommands().map((c) => c.name));
+        const fallbackLines: Array<Omit<TerminalOutputLine, 'id'>> = [
           { variant: 'error', content: `Command not found: ${name}` },
-          { variant: 'muted', content: `Type "help" to see available commands.` },
-        ]);
+          ...(suggestion
+            ? [{ variant: 'muted' as const, content: `Did you mean: ${suggestion}` }]
+            : [{ variant: 'muted' as const, content: 'Type "help" to see available commands.' }]),
+        ];
+        pushOutput(fallbackLines, name);
         return;
       }
 
@@ -44,14 +65,51 @@ export function useTerminal() {
         triggerShutdown: beginShutdown,
       };
 
+      const loaderConfig = getLoaderConfig(name);
+      if (loaderConfig) {
+        const loaderId = nextId();
+        appendLine({
+          variant: 'loader',
+          loader: {
+            message: loaderConfig.message,
+            duration: loaderConfig.duration,
+            progress: loaderConfig.progress,
+            successMessage: loaderConfig.successMessage,
+            callback: async () => {
+              setLines((prev) => prev.filter((line) => line.id !== loaderId));
+              if (loaderConfig.successMessage) {
+                pushOutput([{ variant: 'success', content: loaderConfig.successMessage }], name);
+              }
+
+              if (name.toLowerCase() === 'ui' || name.toLowerCase() === 'web') {
+                ctx.enterGuiMode();
+                return;
+              }
+
+              try {
+                const result = await command.execute(ctx);
+                if (result && result.length > 0) {
+                  pushOutput(result, name);
+                }
+              } catch {
+                pushOutput([{ variant: 'error', content: 'Something went wrong running that command.' }], name);
+              }
+            },
+          },
+        });
+        return;
+      }
+
       try {
         const result = await command.execute(ctx);
-        if (result && result.length > 0) pushOutput(result);
+        if (result && result.length > 0) {
+          pushOutput(result);
+        }
       } catch {
         pushOutput([{ variant: 'error', content: 'Something went wrong running that command.' }]);
       }
     },
-    [pushOutput, clearScreen, enterGui, beginShutdown],
+    [appendLine, pushOutput, clearScreen, enterGui, beginShutdown],
   );
 
   return { lines, runCommand, pushOutput };

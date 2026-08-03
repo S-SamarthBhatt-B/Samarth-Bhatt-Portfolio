@@ -3,6 +3,7 @@ import { profile } from '@/constants/profile';
 
 registerCommand({
   name: 'linkedin',
+  aliases: ['li'],
   description: 'Open my LinkedIn profile',
   execute: () => {
     const url = profile.socials.find((s) => s.label === 'LinkedIn')?.url ?? '';
