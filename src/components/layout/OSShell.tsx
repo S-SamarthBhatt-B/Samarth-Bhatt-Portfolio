@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useOSState } from '@/hooks/useOSState';
 import BootScreen from '@/components/boot/BootScreen';
 import Terminal from '@/components/terminal/Terminal';
+import ShutdownScreen from '@/components/terminal/ShutdownScreen';
 
 /**
  * Top-level mode switcher. Each mode is a full-viewport component;
@@ -19,7 +20,7 @@ export default function OSShell() {
             <BootScreen />
           </motion.div>
         )}
-        {(mode === 'terminal' || mode === 'shutting-down') && (
+        {mode === 'terminal' && (
           <motion.div
             key="terminal"
             initial={{ opacity: 0 }}
@@ -29,6 +30,17 @@ export default function OSShell() {
             className="h-full w-full"
           >
             <Terminal />
+          </motion.div>
+        )}
+        {mode === 'shutting-down' && (
+          <motion.div
+            key="shutdown"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="h-full w-full"
+          >
+            <ShutdownScreen />
           </motion.div>
         )}
         {mode === 'gui' && (
