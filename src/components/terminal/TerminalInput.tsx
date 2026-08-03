@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { useCommandHistory } from '@/hooks/useCommandHistory';
 import { getVisibleCommands } from '@/commands/registry';
@@ -11,10 +11,17 @@ interface TerminalInputProps {
   onInterrupt: (currentValue: string) => void;
 }
 
-export default function TerminalInput({ onSubmit, onInterrupt }: TerminalInputProps) {
+const TerminalInput = forwardRef<HTMLInputElement, TerminalInputProps>(function TerminalInput(
+  { onSubmit, onInterrupt },
+  forwardedRef,
+) {
   const [value, setValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const { push, navigate, resetPointer } = useCommandHistory();
+
+  // Expose the internal input element to the parent via the forwarded ref,
+  // so Terminal.tsx can refocus it when the user clicks anywhere in the scrollback.
+  useImperativeHandle(forwardedRef, () => inputRef.current as HTMLInputElement);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -97,4 +104,6 @@ export default function TerminalInput({ onSubmit, onInterrupt }: TerminalInputPr
       />
     </div>
   );
-}
+});
+
+export default TerminalInput;
