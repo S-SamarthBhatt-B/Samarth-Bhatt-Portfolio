@@ -19,7 +19,8 @@ export type TerminalOutputNode =
   | { kind: 'project-list'; projectIds: string[] }
   | { kind: 'project-detail'; projectId: string }
   | { kind: 'link'; label: string; url: string }
-  | { kind: 'contact-card' };
+  | { kind: 'contact-card' }
+  | { kind: 'profile-card' };
 
 export interface CommandContext {
   /** Raw arguments after the command name. */

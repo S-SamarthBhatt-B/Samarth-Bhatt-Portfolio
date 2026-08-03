@@ -1,4 +1,6 @@
-// ⚠️ PLACEHOLDER CONTENT — replace email/phone with your real details before deploying.
+import profileImage from '@/assets/images/profile.jpg';
+
+// ⚠️ PLACEHOLDER — replace email/phone with your real details before deploying.
 export const profile = {
   name: 'Samarth Bhatt',
   handle: 'S-SamarthBhatt-B',
@@ -12,7 +14,11 @@ export const profile = {
   ],
   email: 'your.email@example.com', // TODO: replace
   phone: '+91 00000 00000', // TODO: replace
-  resumePath: '/resume/Samarth_Bhatt_Resume.pdf',
+  avatar: profileImage,
+  // These are relative (no leading slash) so they resolve correctly under
+  // GitHub Pages' subpath base — always prefix with import.meta.env.BASE_URL at the point of use.
+  resumePath: 'resume/Samarth_Bhatt_Resume.pdf',
+  bannerPath: 'banner/banner.jpg',
   socials: [
     { label: 'GitHub', url: 'https://github.com/S-SamarthBhatt-B', handle: '@S-SamarthBhatt-B' },
     { label: 'LinkedIn', url: 'https://linkedin.com/in/samarth-bhatt29', handle: 'samarth-bhatt29' },

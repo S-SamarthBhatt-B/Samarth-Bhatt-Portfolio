@@ -104,6 +104,24 @@ export default function OutputRenderer({ node }: OutputRendererProps) {
         </p>
       );
 
+    case 'profile-card':
+      return (
+        <div className="my-1 flex items-center gap-3 font-mono text-sm sm:gap-4">
+          <img
+            src={profile.avatar}
+            alt={profile.name}
+            width={64}
+            height={64}
+            className="h-14 w-14 flex-shrink-0 rounded-full border border-os-accent/40 object-cover shadow-glowSm sm:h-16 sm:w-16"
+          />
+          <div className="min-w-0">
+            <p className="text-base text-os-accent text-glow sm:text-lg">{profile.name}</p>
+            <p className="text-os-muted">{profile.title}</p>
+            <p className="text-xs text-os-muted/80 sm:text-sm">{profile.tagline}</p>
+          </div>
+        </div>
+      );
+
     case 'contact-card':
       return (
         <div className="my-1 space-y-1 font-mono text-sm">
