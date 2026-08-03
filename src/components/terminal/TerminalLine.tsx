@@ -56,7 +56,7 @@ export default function TerminalLine({ line, skipTyping = false }: TerminalLineP
     return <TerminalLoader message={line.loader.message} duration={line.loader.duration} progress={line.loader.progress} successMessage={line.loader.successMessage} callback={line.loader.callback ?? (() => undefined)} />;
   }
 
-  const showCursor = useTyping && line.variant !== 'command-echo' && line.variant !== 'loader';
+  const showCursor = useTyping && line.variant !== 'loader';
 
   return (
     <p className={`whitespace-pre-wrap font-mono text-sm sm:text-base ${VARIANT_COLOR[line.variant] ?? 'text-os-text'}`}>
