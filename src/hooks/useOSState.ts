@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 
-export type OSMode = 'boot' | 'terminal' | 'shutting-down' | 'gui';
+export type OSMode = 'boot' | 'terminal' | 'closing-terminal' | 'shutting-down' | 'gui';
 
 interface OSState {
   mode: OSMode;
   setMode: (mode: OSMode) => void;
   enterTerminal: () => void;
   enterGui: () => void;
+  beginGuiTransition: () => void;
   beginShutdown: () => void;
 }
 
@@ -21,5 +22,6 @@ export const useOSState = create<OSState>((set) => ({
   setMode: (mode) => set({ mode }),
   enterTerminal: () => set({ mode: 'terminal' }),
   enterGui: () => set({ mode: 'gui' }),
+  beginGuiTransition: () => set({ mode: 'closing-terminal' }),
   beginShutdown: () => set({ mode: 'shutting-down' }),
 }));

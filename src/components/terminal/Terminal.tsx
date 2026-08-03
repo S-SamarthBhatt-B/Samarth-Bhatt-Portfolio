@@ -1,19 +1,45 @@
 import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { useTerminal } from '@/hooks/useTerminal';
+import { useOSState } from '@/hooks/useOSState';
 import { promptLabel } from '@/constants/prompt';
+import { sleep } from '@/utils/sleep';
 import TerminalLine from './TerminalLine';
 import TerminalInput from './TerminalInput';
 import '@/commands'; // side-effect: registers every command with the registry
 
-export default function Terminal() {
+const CLOSE_DURATION_MS = 650;
+
+interface TerminalProps {
+  /** True while the `ui`/`web` commands are transitioning into GUI mode. */
+  isClosing?: boolean;
+}
+
+export default function Terminal({ isClosing = false }: TerminalProps) {
   const { lines, runCommand, pushOutput } = useTerminal();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputElRef = useRef<HTMLInputElement>(null);
+  const enterGui = useOSState((s) => s.enterGui);
 
   // Auto-scroll to the newest output whenever the scrollback changes.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [lines]);
+
+  // When closing (triggered by `ui`/`web`), play the collapse animation in
+  // place — the same Terminal instance stays mounted so scrollback isn't
+  // lost — then hand off to GUI mode once the animation finishes.
+  useEffect(() => {
+    if (!isClosing) return;
+    let cancelled = false;
+    (async () => {
+      await sleep(CLOSE_DURATION_MS);
+      if (!cancelled) enterGui();
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isClosing, enterGui]);
 
   const handleInterrupt = (currentValue: string) => {
     pushOutput([{ variant: 'muted', content: `${promptLabel} ${currentValue}^C` }]);
@@ -30,7 +56,12 @@ export default function Terminal() {
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col bg-os-bg p-4 sm:p-6" onMouseUp={handleReclaimFocus}>
+    <motion.div
+      animate={isClosing ? { opacity: 0, scale: 0.85, filter: 'blur(6px)' } : { opacity: 1, scale: 1, filter: 'blur(0px)' }}
+      transition={{ duration: CLOSE_DURATION_MS / 1000, ease: 'easeIn' }}
+      className="relative flex h-full w-full flex-col bg-os-bg p-4 sm:p-6"
+      onMouseUp={handleReclaimFocus}
+    >
       <div className="crt-overlay" />
       <div ref={scrollRef} className="terminal-scroll flex-1 overflow-y-auto pr-2">
         {lines.length === 0 && (
@@ -41,6 +72,6 @@ export default function Terminal() {
         ))}
       </div>
       <TerminalInput ref={inputElRef} onSubmit={runCommand} onInterrupt={handleInterrupt} />
-    </div>
+    </motion.div>
   );
 }

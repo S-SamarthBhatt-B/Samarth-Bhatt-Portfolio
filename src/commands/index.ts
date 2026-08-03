@@ -1,5 +1,4 @@
 // Side-effect imports: each module calls registerCommand() at load time.
-// Phase 5 will add imports for modes/ (ui, web) here.
 import '@/commands/core/help';
 import '@/commands/core/clear';
 import '@/commands/core/date';
@@ -12,6 +11,8 @@ import '@/commands/content/projects';
 import '@/commands/content/education';
 import '@/commands/content/experience';
 import '@/commands/content/resume';
+
+import '@/commands/modes/ui';
 
 import '@/commands/links/github';
 import '@/commands/links/linkedin';

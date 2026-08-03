@@ -3,11 +3,13 @@ import { useOSState } from '@/hooks/useOSState';
 import BootScreen from '@/components/boot/BootScreen';
 import Terminal from '@/components/terminal/Terminal';
 import ShutdownScreen from '@/components/terminal/ShutdownScreen';
+import GuiPortfolio from '@/components/ui/GuiPortfolio';
 
 /**
  * Top-level mode switcher. Each mode is a full-viewport component;
  * AnimatePresence handles the crossfade as `mode` changes in useOSState.
- * The GUI mode component is added in Phase 5.
+ * `terminal` and `closing-terminal` share one branch so the Terminal
+ * instance (and its scrollback) survives the ui/web closing animation.
  */
 export default function OSShell() {
   const mode = useOSState((s) => s.mode);
@@ -20,7 +22,7 @@ export default function OSShell() {
             <BootScreen />
           </motion.div>
         )}
-        {mode === 'terminal' && (
+        {(mode === 'terminal' || mode === 'closing-terminal') && (
           <motion.div
             key="terminal"
             initial={{ opacity: 0 }}
@@ -29,7 +31,7 @@ export default function OSShell() {
             transition={{ duration: 0.4 }}
             className="h-full w-full"
           >
-            <Terminal />
+            <Terminal isClosing={mode === 'closing-terminal'} />
           </motion.div>
         )}
         {mode === 'shutting-down' && (
@@ -51,10 +53,7 @@ export default function OSShell() {
             transition={{ duration: 0.6 }}
             className="h-full w-full overflow-y-auto"
           >
-            {/* Populated in Phase 5 with the full GUI portfolio sections */}
-            <div className="flex h-full items-center justify-center text-os-muted">
-              GUI mode — arriving in Phase 5
-            </div>
+            <GuiPortfolio />
           </motion.div>
         )}
       </AnimatePresence>

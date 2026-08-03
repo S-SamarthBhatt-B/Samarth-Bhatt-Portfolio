@@ -9,7 +9,7 @@ const nextId = () => `line-${idCounter++}`;
 
 export function useTerminal() {
   const [lines, setLines] = useState<TerminalOutputLine[]>([]);
-  const enterGui = useOSState((s) => s.enterGui);
+  const enterGui = useOSState((s) => s.beginGuiTransition);
   const beginShutdown = useOSState((s) => s.beginShutdown);
 
   const pushOutput = useCallback((newLines: Omit<TerminalOutputLine, 'id'>[]) => {
