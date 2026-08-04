@@ -94,7 +94,7 @@ export default function OutputRenderer({ node }: OutputRendererProps) {
             ))}
           </ul>
           {project.githubUrl && (
-            <p>
+            <p className="break-all">
               <span className="text-os-muted">GitHub: </span>
               <a className="text-os-accent underline" href={project.githubUrl} target="_blank" rel="noreferrer">
                 {project.githubUrl}
@@ -102,7 +102,7 @@ export default function OutputRenderer({ node }: OutputRendererProps) {
             </p>
           )}
           {project.demoUrl && (
-            <p>
+            <p className="break-all">
               <span className="text-os-muted">Demo: </span>
               <a className="text-os-accent underline" href={project.demoUrl} target="_blank" rel="noreferrer">
                 {project.demoUrl}
@@ -115,7 +115,7 @@ export default function OutputRenderer({ node }: OutputRendererProps) {
 
     case 'link':
       return (
-        <p className="font-mono text-sm">
+        <p className="break-all font-mono text-sm">
           <span className="text-os-muted">{node.label}: </span>
           <a className="text-os-accent underline" href={node.url} target="_blank" rel="noreferrer">
             {node.url}
@@ -143,7 +143,7 @@ export default function OutputRenderer({ node }: OutputRendererProps) {
 
     case 'contact-card':
       return (
-        <div className="my-1 space-y-1 font-mono text-sm">
+        <div className="my-1 space-y-1 break-all font-mono text-sm">
           <p>
             <span className="text-os-muted">Email: </span>
             <a className="text-os-accent underline" href={`mailto:${profile.email}`}>

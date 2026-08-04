@@ -42,7 +42,7 @@ export default function TerminalLine({ line, skipTyping = false }: TerminalLineP
 
   if (line.variant === 'command-echo') {
     return (
-      <p className="whitespace-pre-wrap font-mono text-sm sm:text-base">
+      <p className="whitespace-pre-wrap break-words font-mono text-sm sm:text-base">
         <span className="text-os-muted">{promptLabel}</span> <span className="text-os-text">{line.content}</span>
       </p>
     );
@@ -59,7 +59,7 @@ export default function TerminalLine({ line, skipTyping = false }: TerminalLineP
   const showCursor = useTyping && line.variant !== 'loader';
 
   return (
-    <p className={`whitespace-pre-wrap font-mono text-sm sm:text-base ${VARIANT_COLOR[line.variant] ?? 'text-os-text'}`}>
+    <p className={`whitespace-pre-wrap break-words font-mono text-sm sm:text-base ${VARIANT_COLOR[line.variant] ?? 'text-os-text'}`}>
       {displayed}
       <span className={`ml-0.5 ${showCursor ? 'animate-blink text-os-accent' : 'text-transparent'}`}>▍</span>
     </p>

@@ -110,7 +110,7 @@ export default function Terminal({ isClosing = false }: TerminalProps) {
         animate={transitionState.phase === 'out' ? { opacity: 0, y: -6 } : transitionState.phase === 'in' ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
         transition={{ duration: 0.18 }}
         ref={scrollRef}
-        className="terminal-scroll flex-1 overflow-y-auto pr-2"
+        className="terminal-scroll min-w-0 flex-1 overflow-y-auto overflow-x-hidden pr-2"
       >
         {lines.length === 0 && (
           <p className="mb-2 font-mono text-sm text-os-muted">Session started. Type &quot;help&quot; to begin.</p>
