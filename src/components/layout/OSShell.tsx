@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useOSState } from '@/hooks/useOSState';
+import { useCommandPalette } from '@/hooks/useCommandPalette';
 import BootScreen from '@/components/boot/BootScreen';
 import Terminal from '@/components/terminal/Terminal';
 import ShutdownScreen from '@/components/terminal/ShutdownScreen';
 import GuiPortfolio from '@/components/ui/GuiPortfolio';
+import CommandPalette from '@/components/shared/CommandPalette';
 
 /**
  * Top-level mode switcher. Each mode is a full-viewport component;
@@ -13,6 +16,29 @@ import GuiPortfolio from '@/components/ui/GuiPortfolio';
  */
 export default function OSShell() {
   const mode = useOSState((s) => s.mode);
+  const togglePalette = useCommandPalette((s) => s.toggle);
+  const closePalette = useCommandPalette((s) => s.close);
+
+  // Global Cmd+K / Ctrl+K to open the command palette, available from either
+  // Terminal or GUI mode. Disabled during boot/shutdown/closing transitions,
+  // where there's nothing meaningful for it to do.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        if (mode !== 'terminal' && mode !== 'gui') return;
+        event.preventDefault();
+        togglePalette();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mode, togglePalette]);
+
+  // Close the palette automatically if the OS mode changes out from under it
+  // (e.g. palette triggers a mode switch, or exit/shutdown happens).
+  useEffect(() => {
+    closePalette();
+  }, [mode, closePalette]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-os-bg">
@@ -57,6 +83,7 @@ export default function OSShell() {
           </motion.div>
         )}
       </AnimatePresence>
+      <CommandPalette />
     </div>
   );
 }

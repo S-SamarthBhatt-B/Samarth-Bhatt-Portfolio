@@ -3,6 +3,7 @@ import { profile } from '@/constants/profile';
 import WindowPanel from '@/components/shared/WindowPanel';
 import SectionHeading from '@/components/shared/SectionHeading';
 import Button from '@/components/shared/Button';
+import CopyButton from '@/components/shared/CopyButton';
 import { fadeUp, revealViewport } from '@/animations/variants';
 
 export default function Contact() {
@@ -15,13 +16,19 @@ export default function Contact() {
             <div className="space-y-4 font-mono text-sm">
               <div className="flex items-center justify-between border-b border-os-border/60 pb-3">
                 <span className="text-os-muted">Email</span>
-                <a href={`mailto:${profile.email}`} className="text-os-accent hover:underline">
-                  {profile.email}
-                </a>
+                <div className="flex items-center gap-1">
+                  <a href={`mailto:${profile.email}`} className="text-os-accent hover:underline">
+                    {profile.email}
+                  </a>
+                  <CopyButton value={profile.email} label="Copy email" />
+                </div>
               </div>
               <div className="flex items-center justify-between border-b border-os-border/60 pb-3">
                 <span className="text-os-muted">Phone</span>
-                <span className="text-os-text">{profile.phone}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-os-text">{profile.phone}</span>
+                  <CopyButton value={profile.phone} label="Copy phone number" />
+                </div>
               </div>
               {profile.socials.map((social) => (
                 <div key={social.label} className="flex items-center justify-between border-b border-os-border/60 pb-3 last:border-b-0 last:pb-0">

@@ -8,6 +8,7 @@ import TerminalLine from './TerminalLine';
 import TerminalInput from './TerminalInput';
 import '@/commands'; // side-effect: registers every command with the registry
 import { useTerminalTransition } from '@/hooks/useTerminalTransition';
+import { useCommandPalette } from '@/hooks/useCommandPalette';
 
 const CLOSE_DURATION_MS = 650;
 
@@ -87,6 +88,19 @@ export default function Terminal({ isClosing = false }: TerminalProps) {
     }
     runCommand(raw);
   };
+
+  // Bridge for the Cmd+K command palette: it lives outside this component
+  // tree, so it can't call runCommand directly. It sets pendingCommand
+  // instead; we pick it up here, run it through the normal submit pipeline
+  // (so `clear` still gets its transition animation), then clear the flag.
+  const pendingCommand = useCommandPalette((s) => s.pendingCommand);
+  const clearPendingCommand = useCommandPalette((s) => s.clearPendingCommand);
+  useEffect(() => {
+    if (!pendingCommand) return;
+    handleSubmit(pendingCommand);
+    clearPendingCommand();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingCommand, clearPendingCommand]);
 
   // Clicking anywhere in the terminal (scrollback included) should refocus the
   // input, since browsers blur an active input on any outside mousedown by

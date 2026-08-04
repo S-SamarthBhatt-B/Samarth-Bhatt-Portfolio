@@ -1,6 +1,7 @@
 import type { TerminalOutputNode } from '@/types/terminal.types';
 import { projects } from '@/constants/projects';
 import { profile } from '@/constants/profile';
+import CopyButton from '@/components/shared/CopyButton';
 
 interface OutputRendererProps {
   node: TerminalOutputNode;
@@ -144,15 +145,17 @@ export default function OutputRenderer({ node }: OutputRendererProps) {
     case 'contact-card':
       return (
         <div className="my-1 space-y-1 break-all font-mono text-sm">
-          <p>
+          <p className="flex items-center gap-1">
             <span className="text-os-muted">Email: </span>
             <a className="text-os-accent underline" href={`mailto:${profile.email}`}>
               {profile.email}
             </a>
+            <CopyButton value={profile.email} label="Copy email" />
           </p>
-          <p>
+          <p className="flex items-center gap-1">
             <span className="text-os-muted">Phone: </span>
             {profile.phone}
+            <CopyButton value={profile.phone} label="Copy phone number" />
           </p>
           {profile.socials.map((s) => (
             <p key={s.label}>

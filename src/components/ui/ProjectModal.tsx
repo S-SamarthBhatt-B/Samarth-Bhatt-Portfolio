@@ -1,7 +1,10 @@
 import type { Project } from '@/types/project.types';
+import { FiStar, FiGitBranch } from 'react-icons/fi';
 import Modal from '@/components/shared/Modal';
 import Badge from '@/components/shared/Badge';
 import Button from '@/components/shared/Button';
+import { getTechIcon } from '@/constants/techIcons';
+import { useGithubRepoStats } from '@/hooks/useGithubRepoStats';
 
 interface ProjectModalProps {
   project: Project | null;
@@ -9,6 +12,8 @@ interface ProjectModalProps {
 }
 
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
+  const stats = useGithubRepoStats(project?.githubUrl);
+
   return (
     <Modal isOpen={project !== null} onClose={onClose}>
       {project && (
@@ -30,9 +35,15 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           <p className="mb-5 leading-relaxed text-os-text">{project.description}</p>
 
           <div className="mb-5 flex flex-wrap gap-2">
-            {project.stack.map((tech) => (
-              <Badge key={tech}>{tech}</Badge>
-            ))}
+            {project.stack.map((tech) => {
+              const Icon = getTechIcon(tech);
+              return (
+                <Badge key={tech} className="inline-flex items-center gap-1.5">
+                  <Icon className="h-3.5 w-3.5" />
+                  {tech}
+                </Badge>
+              );
+            })}
           </div>
 
           <p className="mb-2 font-mono text-sm text-os-accent">Key features</p>
@@ -52,7 +63,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {project.githubUrl && (
               <Button as="a" href={project.githubUrl} target="_blank" rel="noreferrer" variant="outline">
                 View on GitHub
@@ -62,6 +73,16 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               <Button as="a" href={project.demoUrl} target="_blank" rel="noreferrer" variant="primary">
                 Live Demo
               </Button>
+            )}
+            {stats && (
+              <div className="flex items-center gap-3 font-mono text-xs text-os-muted">
+                <span className="inline-flex items-center gap-1">
+                  <FiStar className="h-3.5 w-3.5" /> {stats.stars}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <FiGitBranch className="h-3.5 w-3.5" /> {stats.forks}
+                </span>
+              </div>
             )}
           </div>
         </div>

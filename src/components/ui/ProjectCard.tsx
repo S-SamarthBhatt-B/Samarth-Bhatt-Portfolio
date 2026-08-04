@@ -1,9 +1,12 @@
 import { motion } from 'framer-motion';
+import { FiStar } from 'react-icons/fi';
 import type { Project } from '@/types/project.types';
 import WindowPanel from '@/components/shared/WindowPanel';
 import Badge from '@/components/shared/Badge';
 import Button from '@/components/shared/Button';
 import { staggerItem } from '@/animations/variants';
+import { getTechIcon } from '@/constants/techIcons';
+import { useGithubRepoStats } from '@/hooks/useGithubRepoStats';
 
 interface ProjectCardProps {
   project: Project;
@@ -17,6 +20,8 @@ const STATUS_LABEL: Record<Project['status'], string> = {
 };
 
 export default function ProjectCard({ project, onViewDetails }: ProjectCardProps) {
+  const stats = useGithubRepoStats(project.githubUrl);
+
   return (
     <motion.div variants={staggerItem}>
       <WindowPanel path={`~/projects/${project.id}`} className="flex h-full flex-col">
@@ -26,13 +31,27 @@ export default function ProjectCard({ project, onViewDetails }: ProjectCardProps
             <Badge className="flex-shrink-0">{STATUS_LABEL[project.status]}</Badge>
           </div>
           <p className="mb-3 text-sm text-os-muted">{project.tagline}</p>
-          <div className="mb-4 flex flex-wrap gap-1.5">
-            {project.stack.slice(0, 4).map((tech) => (
-              <span key={tech} className="text-xs text-os-muted/80">
-                #{tech.replace(/\s+/g, '')}
-              </span>
-            ))}
-          </div>
+
+          {project.stack.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center gap-2.5">
+              {project.stack.slice(0, 6).map((tech) => {
+                const Icon = getTechIcon(tech);
+                return (
+                  <span key={tech} title={tech} className="text-os-muted/80 transition-colors hover:text-os-accent">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
+          {stats && (
+            <div className="mb-3 flex items-center gap-1 font-mono text-xs text-os-muted">
+              <FiStar className="h-3.5 w-3.5" />
+              <span>{stats.stars}</span>
+            </div>
+          )}
+
           <div className="mt-auto flex items-center gap-2 pt-2">
             <Button variant="outline" onClick={onViewDetails} className="w-full">
               View Details
