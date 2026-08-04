@@ -37,19 +37,48 @@ const desktopApps: DesktopAppDef[] = [
   { id: 'contact', title: 'Contact', icon: '✉', content: <Contact /> },
 ];
 
-function getCascadedPosition(index: number, viewportWidth: number, viewportHeight: number) {
-  const baseX = viewportWidth / 2 - 360;
-  const baseY = viewportHeight / 2 - 260;
+/** Mobile breakpoint below which windows open near-fullscreen instead of floating. */
+const MOBILE_BREAKPOINT = 640;
+
+/**
+ * Computes a window's width/height for the current viewport. On phones
+ * (below MOBILE_BREAKPOINT) windows go near-fullscreen, since a fixed
+ * 720x520 floating window would overflow and be unusable on a small screen.
+ * On larger screens it keeps the original 720x520 but clamps to the
+ * viewport so it never overflows on smaller laptops/tablets either.
+ */
+function getResponsiveWindowSize(viewportWidth: number, viewportHeight: number) {
+  if (viewportWidth < MOBILE_BREAKPOINT) {
+    return {
+      width: viewportWidth - 16,
+      height: viewportHeight - 152, // leaves room for the taskbar + margins
+    };
+  }
+  return {
+    width: Math.min(720, viewportWidth - 48),
+    height: Math.min(520, viewportHeight - 160),
+  };
+}
+
+function getCascadedPosition(
+  index: number,
+  viewportWidth: number,
+  viewportHeight: number,
+  windowWidth: number,
+  windowHeight: number,
+) {
+  const baseX = (viewportWidth - windowWidth) / 2;
+  const baseY = (viewportHeight - windowHeight) / 2;
   const stepX = 32;
   const stepY = 28;
   const offsetIndex = index % 8;
   const x = baseX + offsetIndex * stepX;
   const y = baseY + offsetIndex * stepY;
-  const maxX = viewportWidth - 720;
-  const maxY = viewportHeight - 520;
+  const maxX = viewportWidth - windowWidth;
+  const maxY = viewportHeight - windowHeight;
   return {
-    x: Math.min(Math.max(x, 24), Math.max(24, maxX)),
-    y: Math.min(Math.max(y, 24), Math.max(24, maxY)),
+    x: Math.min(Math.max(x, 8), Math.max(8, maxX)),
+    y: Math.min(Math.max(y, 8), Math.max(8, maxY)),
   };
 }
 
@@ -87,6 +116,27 @@ export default function DesktopShell() {
     };
   }, [draggingId, dragOffset]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const { width, height } = getResponsiveWindowSize(viewportWidth, viewportHeight);
+
+      setWindows((current) =>
+        current.map((win) => ({
+          ...win,
+          width,
+          height,
+          x: Math.min(Math.max(win.x, 8), Math.max(8, viewportWidth - width)),
+          y: Math.min(Math.max(win.y, 8), Math.max(8, viewportHeight - height)),
+        })),
+      );
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const openApp = (app: DesktopAppDef) => {
     setWindows((current) => {
       const existing = current.find((entry) => entry.id === app.id);
@@ -99,7 +149,8 @@ export default function DesktopShell() {
 
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const position = getCascadedPosition(current.length, viewportWidth, viewportHeight);
+      const { width, height } = getResponsiveWindowSize(viewportWidth, viewportHeight);
+      const position = getCascadedPosition(current.length, viewportWidth, viewportHeight, width, height);
       const nextWindow: DesktopWindow = {
         id: app.id,
         title: app.title,
@@ -107,8 +158,8 @@ export default function DesktopShell() {
         content: app.content,
         x: position.x,
         y: position.y,
-        width: 720,
-        height: 520,
+        width,
+        height,
         minimized: false,
       };
 
@@ -155,44 +206,48 @@ export default function DesktopShell() {
           <AnimatePresence>
             {windows
               .filter((window) => !window.minimized)
-              .map((window) => (
+              .map((win) => {
+                const isFullscreenWidth = win.width >= (typeof window !== 'undefined' ? window.innerWidth : win.width) - 32;
+                return (
                 <motion.div
-                  key={window.id}
+                  key={win.id}
                   initial={{ opacity: 0, scale: 0.96, y: 12 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.25 }}
-                  className={`absolute ${activeWindowId === window.id ? 'z-20' : 'z-10'} overflow-hidden rounded-2xl border border-os-border/70 bg-os-panel/90 shadow-2xl backdrop-blur-xl ${focusPulse === window.id ? 'ring-1 ring-os-accent/60' : ''}`}
-                  style={{ left: window.x, top: window.y, width: window.width, height: window.height, transformOrigin: 'center center' }}
+                  className={`absolute ${activeWindowId === win.id ? 'z-20' : 'z-10'} overflow-hidden rounded-2xl border border-os-border/70 bg-os-panel/90 shadow-2xl backdrop-blur-xl ${focusPulse === win.id ? 'ring-1 ring-os-accent/60' : ''}`}
+                  style={{ left: win.x, top: win.y, width: win.width, height: win.height, transformOrigin: 'center center' }}
                   onMouseDown={() => {
-                    setActiveWindowId(window.id);
-                    setFocusPulse(window.id);
+                    setActiveWindowId(win.id);
+                    setFocusPulse(win.id);
                     globalThis.setTimeout(() => setFocusPulse(null), 600);
                   }}
                 >
                   <div
-                    className="flex cursor-move items-center justify-between border-b border-os-border/70 bg-black/20 px-3 py-2"
+                    className={`flex items-center justify-between border-b border-os-border/70 bg-black/20 px-3 py-2 ${isFullscreenWidth ? '' : 'cursor-move'}`}
                     onMouseDown={(event) => {
-                      setActiveWindowId(window.id);
+                      setActiveWindowId(win.id);
+                      if (isFullscreenWidth) return;
                       const rect = (event.currentTarget.parentElement as HTMLElement).getBoundingClientRect();
                       setDragOffset({ x: event.clientX - rect.left, y: event.clientY - rect.top });
-                      setDraggingId(window.id);
+                      setDraggingId(win.id);
                     }}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-os-accent">{window.icon}</span>
-                      <span className="font-mono text-sm text-os-text">{window.title}</span>
+                      <span className="text-sm text-os-accent">{win.icon}</span>
+                      <span className="font-mono text-sm text-os-text">{win.title}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => minimizeWindow(window.id)} className="h-2.5 w-2.5 rounded-full bg-os-warn/90" aria-label={`Minimize ${window.title}`} />
-                      <button onClick={() => closeWindow(window.id)} className="h-2.5 w-2.5 rounded-full bg-os-error/90" aria-label={`Close ${window.title}`} />
+                      <button onClick={() => minimizeWindow(win.id)} className="h-2.5 w-2.5 rounded-full bg-os-warn/90" aria-label={`Minimize ${win.title}`} />
+                      <button onClick={() => closeWindow(win.id)} className="h-2.5 w-2.5 rounded-full bg-os-error/90" aria-label={`Close ${win.title}`} />
                     </div>
                   </div>
                   <div className="h-[calc(100%-44px)] overflow-y-auto bg-transparent p-3 sm:p-5">
-                    {window.content}
+                    {win.content}
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
           </AnimatePresence>
         </div>
 
