@@ -6,7 +6,7 @@ import { fadeUp, revealViewport } from '@/animations/variants';
 
 export default function About() {
   return (
-    <section id="about" className="scroll-mt-20 px-6 py-20 sm:py-28">
+    <section id="about" className="scroll-mt-20 px-1 py-2">
       <div className="mx-auto max-w-3xl">
         <SectionHeading command="about" title="About Me" />
         <motion.div initial="hidden" whileInView="visible" viewport={revealViewport} variants={fadeUp}>

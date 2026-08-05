@@ -39,7 +39,7 @@ const entries: TimelineEntry[] = [
 
 export default function Timeline() {
   return (
-    <section id="timeline" className="scroll-mt-20 px-6 py-20 sm:py-28">
+    <section id="timeline" className="scroll-mt-20 px-1 py-2">
       <div className="mx-auto max-w-3xl">
         <SectionHeading
           command="cat timeline.log"

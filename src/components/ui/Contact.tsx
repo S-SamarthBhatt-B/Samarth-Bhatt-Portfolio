@@ -8,7 +8,7 @@ import { fadeUp, revealViewport } from '@/animations/variants';
 
 export default function Contact() {
   return (
-    <section id="contact" className="scroll-mt-20 px-6 py-20 sm:py-28">
+    <section id="contact" className="scroll-mt-20 px-1 py-2">
       <div className="mx-auto max-w-2xl">
         <SectionHeading command="contact" title="Get in Touch" subtitle="Reach out directly — I read everything." />
         <motion.div initial="hidden" whileInView="visible" viewport={revealViewport} variants={fadeUp}>

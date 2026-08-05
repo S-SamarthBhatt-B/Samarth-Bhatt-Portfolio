@@ -27,7 +27,7 @@ export default function ProjectCard({ project, onViewDetails }: ProjectCardProps
       <WindowPanel path={`~/projects/${project.id}`} className="flex h-full flex-col">
         <div className="flex flex-1 flex-col">
           <div className="mb-2 flex items-start justify-between gap-2">
-            <h3 className="font-display text-lg font-semibold text-os-text">{project.title}</h3>
+            <h3 className="min-w-0 break-words font-display text-lg font-semibold text-os-text">{project.title}</h3>
             <Badge className="flex-shrink-0">{STATUS_LABEL[project.status]}</Badge>
           </div>
           <p className="mb-3 text-sm text-os-muted">{project.tagline}</p>

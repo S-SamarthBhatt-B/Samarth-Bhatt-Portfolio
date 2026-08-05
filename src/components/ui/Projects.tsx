@@ -11,7 +11,7 @@ export default function Projects() {
   const [selected, setSelected] = useState<Project | null>(null);
 
   return (
-    <section id="projects" className="scroll-mt-20 px-6 py-20 sm:py-28">
+    <section id="projects" className="scroll-mt-20 px-1 py-2">
       <div className="mx-auto max-w-5xl">
         <motion.div initial="hidden" whileInView="visible" viewport={revealViewport} variants={fadeUp}>
           <SectionHeading
@@ -25,7 +25,7 @@ export default function Projects() {
           whileInView="visible"
           viewport={revealViewport}
           variants={staggerContainer}
-          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-5"
         >
           {projects.map((project) => (
             <ProjectCard key={project.id} project={project} onViewDetails={() => setSelected(project)} />

@@ -9,7 +9,7 @@ export default function Resume() {
   const resumeUrl = `${import.meta.env.BASE_URL}${profile.resumePath}`;
 
   return (
-    <section id="resume" className="scroll-mt-20 px-6 py-20 sm:py-28">
+    <section id="resume" className="scroll-mt-20 px-1 py-2">
       <div className="mx-auto max-w-3xl">
         <SectionHeading command="resume" title="Resume" />
         <motion.div initial="hidden" whileInView="visible" viewport={revealViewport} variants={fadeUp}>

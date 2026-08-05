@@ -7,7 +7,7 @@ interface SectionHeadingProps {
 
 export default function SectionHeading({ command, title, subtitle }: SectionHeadingProps) {
   return (
-    <div className="mb-8 sm:mb-10">
+    <div className="mb-4 sm:mb-6">
       <p className="mb-2 font-mono text-sm text-os-accent">
         <span className="text-os-muted">guest@samarthos:~$</span> {command}
       </p>

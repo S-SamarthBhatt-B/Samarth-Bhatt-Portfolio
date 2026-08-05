@@ -7,7 +7,7 @@ import { fadeUp, revealViewport, staggerContainer, staggerItem } from '@/animati
 
 export default function Skills() {
   return (
-    <section id="skills" className="scroll-mt-20 px-6 py-20 sm:py-28">
+    <section id="skills" className="scroll-mt-20 px-1 py-2">
       <div className="mx-auto max-w-3xl">
         <SectionHeading command="skills" title="Technical Skills" />
         <motion.div initial="hidden" whileInView="visible" viewport={revealViewport} variants={fadeUp}>

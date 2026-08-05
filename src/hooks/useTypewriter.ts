@@ -16,6 +16,14 @@ interface UseTypewriterOptions {
 /**
  * Types out `text` character by character, returning the current visible
  * substring and a boolean for whether typing has finished.
+ *
+ * Once a given `text` has fully typed out, it's remembered (via
+ * `completedTextRef`) and never restarts — even if `instant`/`active` flip
+ * afterward. This matters because a shared "skip typing" keypress (Enter/
+ * Space/Escape) toggles a single `skipTyping` flag that's passed down to
+ * every currently-mounted line; without this guard, that flag flipping
+ * true-then-false again would make already-finished lines wipe back to
+ * blank and retype themselves from scratch.
  */
 export function useTypewriter(text: string, options: UseTypewriterOptions = {}) {
   const { speed = 18, startDelay = 0, instant = false, onComplete, active = true } = options;
@@ -26,12 +34,24 @@ export function useTypewriter(text: string, options: UseTypewriterOptions = {}) 
   const startTimeRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number | null>(null);
   const finishedRef = useRef(false);
+  const completedTextRef = useRef<string | null>(instant || !active ? text : null);
 
   useEffect(() => {
+    // Already fully typed this exact text before — never restart it, no
+    // matter how instant/active change afterward. Only a genuinely new
+    // `text` value (a different line) is allowed to reset this.
+    if (completedTextRef.current === text) {
+      setDisplayed(text);
+      setDone(true);
+      finishedRef.current = true;
+      return;
+    }
+
     if (!active) {
       setDisplayed(text);
       setDone(true);
       finishedRef.current = true;
+      completedTextRef.current = text;
       return;
     }
 
@@ -39,6 +59,7 @@ export function useTypewriter(text: string, options: UseTypewriterOptions = {}) 
       setDisplayed(text);
       setDone(true);
       finishedRef.current = true;
+      completedTextRef.current = text;
       onComplete?.();
       return;
     }
@@ -67,6 +88,7 @@ export function useTypewriter(text: string, options: UseTypewriterOptions = {}) 
       if (index >= text.length) {
         setDone(true);
         finishedRef.current = true;
+        completedTextRef.current = text;
         onComplete?.();
         return;
       }
@@ -97,6 +119,7 @@ export function useTypewriter(text: string, options: UseTypewriterOptions = {}) 
       setDisplayed(text);
       setDone(true);
       finishedRef.current = true;
+      completedTextRef.current = text;
       onComplete?.();
     };
 
